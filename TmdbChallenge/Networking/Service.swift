@@ -10,38 +10,47 @@ import Foundation
 
 class Service {
     
+    // Using URLSession.shared to access the contents of a URL and make a request.
     var session = URLSession.shared
     
-    // MARK: - Create URL from parameters
+    // MARK: - Create URL from parameters and path extension.
     private func URLWithParameters(_ parameters: [String:AnyObject], withPathExtension: String? = nil) -> URL {
         
+        //Creating an instance of URLComponents strucutre to parse a URL
         var components = URLComponents()
+        //Set the properties below
         components.scheme = Api.SCHEME
         components.host = Api.HOST
         components.path = Api.PATH + (withPathExtension ?? "")
         components.queryItems = [URLQueryItem]()
         
+        // Get the key's values from the parameters
         for (key, value) in parameters {
             let queryItem = URLQueryItem(name: key, value: "\(value)")
             components.queryItems!.append(queryItem)
         }
-        
+        // Getting the URL
         return components.url!
     }
     
     // MARK: - Handle Get Requests
+    /// getMethod will have inputs such as method and parameters to assist with returning the proper downloaded data.
     func getMethod(_ method: String, parameters: [String: AnyObject], completionHandler: @escaping (_ result: Data?, _ error: NSError?) -> Void) -> URLSessionDataTask {
         
-        // Setup request
+        // Create a parameter with the API key 
         var parameterWithKey = parameters
         parameterWithKey[ParameterKeys.API_KEY] = Api.KEY as AnyObject?
+        
+        // Create the request with the api key
         let request = NSMutableURLRequest(url: URLWithParameters(parameterWithKey, withPathExtension: method))
         
-        // Make Request
+        // Creates a task to retrive the URL
         let task = session.dataTask(with: request as URLRequest) { (data, response, error) in
             
+            ///If there is an error we will send it
             func sendError(_ error: String) {
                 print(error)
+                //Will return the error description
                 let userInfo = [NSLocalizedDescriptionKey : error]
                 completionHandler(nil, NSError(domain: "taskForGETMethod", code: 1, userInfo: userInfo))
             }
@@ -65,15 +74,17 @@ class Service {
     }
     
     // MARK: - Handle Get Image Requests
-    
+    // Passing a closure to execute after the function gets executed
     func getImage(_ size: String, filePath: String, completionHandlerForImage: @escaping (_ imageData: Data?, _ error: NSError?) -> Void) -> URLSessionTask {
         
         let baseURL = URL(string: ImageKeys.IMAGE_BASE_URL)!
         let url = baseURL.appendingPathComponent(size).appendingPathComponent(filePath)
+        //Creating a request based off the baseURL + url data
         let request = URLRequest(url: url)
         
         let task = session.dataTask(with: request) { (data, response, error) in
             
+            /// Send error if there is one
             func sendError(_ error: String) {
                 print(error)
                 let userInfo = [NSLocalizedDescriptionKey : error]
@@ -92,8 +103,9 @@ class Service {
             // Return image data
             completionHandlerForImage(data, nil)
         }
-        
+        //Resuming task if it is suspended
         task.resume()
+        //Returning the URLSessionDataTask with the request
         return task
     }
 }

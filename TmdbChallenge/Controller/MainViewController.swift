@@ -24,17 +24,22 @@ class MainViewController: UIViewController, UITableViewDelegate, UITableViewData
     }
     
     // MARK: - Loads popular movie data
+    /// Loading popular movie data and taking a page an an int parameter.
     private func loadPopularData(onPage page: Int = 1) {
         let _ = client.getMethod(Methods.POPULAR_MOVIES, parameters: [ParameterKeys.PAGE: page as AnyObject]) { (data, error) in
             if error == nil, let jsonData = data {
+                //Decoding the movie results into json data
                 let result = MovieResults.decode(jsonData: jsonData)
+                //Obtain the decoded results if there is a value.
                 if let movieResults = result?.results {
                     self.movies += movieResults
                     
                     DispatchQueue.main.async {
+                        //Reload the data onto the tableview on the main thread.
                         self.movieListTableView.reloadData()
                     }
                 }
+                // Loading results onto the page
                 if let totalPages = result?.total_pages, page < totalPages {
                     self.loadPopularData(onPage: page + 1)
                 }
@@ -52,6 +57,8 @@ class MainViewController: UIViewController, UITableViewDelegate, UITableViewData
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "movieCell", for: indexPath) as! MovieTableViewCell
         let movie = movies[indexPath.row]
+        
+        //Retreiving the movie title
         cell.movieTitle.text = movie.title
         
         //Set and retrieve poster image
@@ -75,6 +82,8 @@ class MainViewController: UIViewController, UITableViewDelegate, UITableViewData
         tableView.deselectRow(at: indexPath, animated: true)
         guard movies.count > indexPath.row else { return }
         let movie = movies[indexPath.row]
+        
+        //Showing the detail vc based on the identifier
         guard let detailVC = storyboard?.instantiateViewController(withIdentifier: "movieDetail") as? DetailViewController else { return }
         detailVC.movie = movie
         self.showDetailViewController(detailVC, sender: self)

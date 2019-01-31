@@ -24,11 +24,13 @@ class DetailViewController: UIViewController {
         super.viewDidLoad()
         
         // MARK: Movie Data
+        // If there is no data, nothing will be returned.
         guard movie != nil else { return }
         
+        //Assinging the movie data to the respective IBOutlets
         detailTitle.text = movie.title
         detailOverview.text = movie.overview
-        
+
         //Retrieve movie poster
         if let posterPath = movie.poster_path {
             let _ = client.getImage(ImageKeys.PosterSizes.POSTER, filePath: posterPath) { (data, error) in
@@ -41,7 +43,7 @@ class DetailViewController: UIViewController {
             }
         }
     }
-    
+
     // MARK: - Actions
     @IBAction func dismissAction(_ sender: Any) {
         dismiss(animated: true, completion: nil)
